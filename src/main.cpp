@@ -156,7 +156,7 @@ int main(int argc, char* argv[]){
 			while (tnow <= tfinal)
 			{
 
-				// Assign agonist concentration of the cells to the value before the stimulation
+				// Assign spatial distribution of agonist concentration after the stimulation
 				if (tnow >= stim && count_stim < 1)
 				{
 					count_stim = 2;
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]){
 						}
 				}
 
-				// Assigning spatial distribution of agonist concentration to the cells - sigmoidal distribution
+				// Assign spatial distribution of agonist concentration for the stimulation
 				else if (tnow >= (delay) && count_delay < 1)
 				{
 					count_delay = 2;
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]){
 					tol_count = 2;
 					if (tnow<delay)
 					{
-						singlecell(tnow, interval); // Single cell simulation to all cells to converge variables
+						singlecell(tnow, interval); // Single cell simulation
 					}
 					else
 					{
