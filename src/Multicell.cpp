@@ -137,9 +137,9 @@ extern double *Q_ip3r, *Q_serca, *Q_ryr;
 							{
 							/* Membrane potential*/
 							R2 = G_gj[i];
-							TDMB[i] = ((C_m*1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc]) + R2;
+							TDMB[i] = ((C_m*1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm]) + R2;
 							TDMCC[i] = -R2 / TDMB[i];
-							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m * 1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] - par[i * num_par[0] + I_nsc] - par[i * num_par[0] + I_pmca] );
+							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m * 1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm] * E_nsc - par[i * num_par[0] + I_pmca] );
 							TDMDD[i]= TDMD[i] / TDMB[i];
 
 							/* IP3 concentration */
@@ -154,8 +154,8 @@ extern double *Q_ip3r, *Q_serca, *Q_ryr;
 							{
 							/* Membrane potential */
 							R1 = G_gj[i];
-							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m*1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] - par[i * num_par[0] + I_nsc] - par[i * num_par[0] + I_pmca] );
-							TDMB[i] = ((C_m * 1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc]) + R1;
+							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m*1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm] * E_nsc- par[i * num_par[0] + I_pmca] );
+							TDMB[i] = ((C_m * 1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm]) + R1;
 							tdmm = 1.0 / (TDMB[i] + R1 * TDMCC[i - 1]);
 							TDMDD[i] = (TDMD[i] + R1 * TDMDD[i - 1]) * tdmm;
 
@@ -172,8 +172,8 @@ extern double *Q_ip3r, *Q_serca, *Q_ryr;
 							/* Membrane potential */
 							R1 = G_gj[i];
 							R2 = G_gj[i];
-							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m * 1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] - par[i * num_par[0] + I_nsc] - par[i * num_par[0] + I_pmca] );
-							TDMB[i] = ((C_m * 1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc]) + R1 + R2;
+							TDMD[i]	= ((y[i * num_var[0] + smc_vm] * C_m * 1e-3 / interval) + par[i * num_par[0] + E_K] * G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] *  y_converge[i * num_var[0] + smc_fl] * par[i * num_par[0] + E_Ca] + G_cacc * par[i * num_par[0] + p_cacc] * par[i * num_par[0] + E_Cl] - par[i * num_par[0] + I_ncx] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm] * E_nsc - par[i * num_par[0] + I_pmca] );
+							TDMB[i] = ((C_m * 1e-3 / interval)  +  G_bkca * par[i * num_par[0] + p_kca] + G_vocc * y_converge[i * num_var[0] + smc_dl] * y_converge[i * num_var[0] + smc_fl] + G_cacc * par[i * num_par[0] + p_cacc] + G_nsc * (par[i * num_par[0] + p_nscdag]) * par[i * num_par[0] + p_nscvm]) + R1 + R2;
 							tdmm = 1.0 / (TDMB[i] + R1 * TDMCC[i - 1]);
 							TDMCC[i] = -R2 * tdmm;
 							TDMDD[i] = (TDMD[i] + R1 * TDMDD[i - 1]) * tdmm;
