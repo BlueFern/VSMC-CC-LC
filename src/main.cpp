@@ -1,10 +1,10 @@
 /**
  * \mainpage Vascular Smooth Muscle Cell (VSMC): Coupled cells Model
- * The coupled cells model is used to simulate calcium dynamics in a population of VSMCs. 
+ * The coupled cells model is used to simulate calcium dynamics in a population of VSMCs.
  * The gap junctional intercellular communication (GJIC) is modelled by adding coupling equations for IP$_3$ and V$_m$.
  * A linear coupling equation is assigned for both IP$_3$ and V$_m$.
  * Calcium diffusion between the cells is neglected.
- * A sigmoidal distriubtion of agonist concentration is applied over the 100 coupled cells.
+ * The simulation parameters are fixed to replicate the experiments of Seppey et .al (2010).
  * @author Jaijus
  */
 
@@ -15,7 +15,7 @@
 #include <math.h>
 #include<sys/stat.h>
 
-#include "include/computelib.h"
+#include "computelib.h"
 
 int main(int argc, char* argv[]){
 
@@ -27,28 +27,32 @@ int main(int argc, char* argv[]){
 		double unitary_IP3 = Exp_IP3/number_Gj_base; // Unitary IP3 coupling coefficient -  base value calculated, s-1
 		double number_G_gj = number_Gj_base; // Total number of gap junctions
 
-
-	/* Sigmoidal function */
-		double xmean = 0.5; // sigmoidal distribution mean position
-		double xstretch_var = 0.1; // sigmoidal function: slope
+		double stim_interval[2];
+		stim_interval[1] = 81;
 
 	/* Simulation controlling parameters */
 		double tnow = 0.0; // Initial time , s
-		double tfinal = 201; // Final time, s
-		double interval = 1e-4; // Time interval, s
+		double interval = 1e-2; // Time interval, s
 		double tol_state = 1e-4; // Tolerance limit for the convergence in the iteration
-		double delay = 50; // Time allowed for variables to converge
-		double stim_time = tfinal; // Total stimulation time, s
+		double delay_ini = 50; // Time allowed for variables to converge
+		double delay = delay_ini; // Time allowed for variables to converge
+		double stim_time = 0.5; // Total stimulation time, s
 		double stim = delay+stim_time; // Time when stimulation ends, s
+		double tfinal = stim_interval[1]+delay-1; // Final time, s
 		double count_stim = 0; // control variable for the loop
 		double count_delay = 0; // control variable for the loop
 		int tol_count = 0; // Control varialbe for fixed point iteration
-		double file_write_freq = 0.01; // File writing frequency, s
+		double file_write_freq = 0.1; // File writing frequency, s
 		int folder_status; // variable to check the successful creartion of folder
+
+
+
+
 
 
 		char main_folder[300];
 		char sub_folder[300];
+		char timeseries_folder[300];
 		char temp_name[300];
 
 		/* Variables for coupled cells */
@@ -62,7 +66,8 @@ int main(int argc, char* argv[]){
 		int var_tot; // total number state variables in all the cells
 		int par_tot; // total number of parameters in all the cells
 
-		num_cell[0]	= 100; // Total number of SMCs
+		num_cell[0]	= 1600; // Total number of SMCs
+		int stim_cells = 20; // Number of cells stimulated
 
 		var_tot	= num_cell[0] * num_var[0];
 	 	par_tot	= num_cell[0] * num_par[0];
@@ -72,9 +77,8 @@ int main(int argc, char* argv[]){
 		G_gj_base[0] = number_G_gj * unitary_G_gj/1e3; // Base value of gap junctional conductance
 		IP3_P_base[0] = unitary_IP3 * number_G_gj; // Base value of IP3 coupling coefficient
 
-		G_gj_varied[0] = number_G_gj * unitary_G_gj/1e3; // value of gap junctional conductance
-		IP3_P_varied[0] = unitary_IP3 * number_G_gj;  // value of IP3 coupling coefficient
-		L_rest[0] = 0.0; // initial agonist concentration- before assigning sigmoidal distribution
+		G_gj_varied[0] = G_gj_base[0]; // value of gap junctional conductance
+		IP3_P_varied[0] = IP3_P_base[0] ;  // value of IP3 coupling coefficient
 
 
 		/* Creating main folder */
@@ -88,7 +92,7 @@ int main(int argc, char* argv[]){
 
 
 			/* Creating subfolder to save all the files for each loop */
-			sprintf(sub_folder,"%s/%d_%3.2f_%3.1fnM_%3.1fnM_%4.1fpS_%3.1fs-1",main_folder,num_cell[0],xstretch_var,nonstim_NE,stim_NE,G_gj_varied[0]/1e-3,IP3_P_varied[0]);
+			sprintf(sub_folder,"%s/%3.1fnM_%4.1fpS_%3.1fs-1",main_folder,nonstim_NE,G_gj_varied[0]/1e-3,IP3_P_varied[0]);
 			printf("%s\n",sub_folder);
 			folder_status = mkdir(sub_folder,0777);
 				if(folder_status == -1)
@@ -97,9 +101,17 @@ int main(int argc, char* argv[]){
 					return -1;
 					}
 
+			/* Creating subsubfolder as 'Timeseries'to save vtk files */
+				sprintf(timeseries_folder,"%s/Timeseries",sub_folder);
+				folder_status = mkdir(timeseries_folder,0777);
+				if(folder_status == -1)
+					{
+					perror("Couldn't create sub-directory");
+					return -1;
+					}
 
 			int count = 1; // counter to produce output files
-			// OIpening and creating FILE names for output files
+
 			FILE *fca; // Time series of intracellular calcium
 			FILE *fvm; // Time series of membrane potential
 			FILE *ft; // Time data
@@ -113,8 +125,6 @@ int main(int argc, char* argv[]){
 			FILE *fryr; // Time series of RyR channel flux
 			FILE *fs; // Cell spatial position
 			FILE *fL; // Spatial distribution of agonist concentration
-			FILE *fGgj; // Spatial distribution of gap junctional conductance
-			FILE *fIP3P; // Spatial distribution of IP3 coupling coefficient
 
 
 			sprintf(temp_name,"%s/Ca_timeseries.txt",sub_folder);
@@ -143,13 +153,9 @@ int main(int argc, char* argv[]){
 			fryr = fopen(temp_name,"w+");
 			sprintf(temp_name,"%s/NE.txt",sub_folder);
 			fL = fopen(temp_name,"w+");
-			sprintf(temp_name,"%s/G_gj.txt",sub_folder);
-			fGgj = fopen(temp_name,"w+");
-			sprintf(temp_name,"%s/IP3_P.txt",sub_folder);
-			fIP3P = fopen(temp_name,"w+");
 
 
-			initialize(fs); // Initialize the variables
+			initialize(fs, fL, tnow); // Initialize the variables
 			dump_data(ft, fvm, fca, fip3, fncx, fvocc, fbkca, fip3r, fsrca, fryr,fdag, tnow); // Creating output files
 
 			// Simulation starts here
@@ -159,47 +165,44 @@ int main(int argc, char* argv[]){
 				// Assign spatial distribution of agonist concentration after the stimulation
 				if (tnow >= stim && count_stim < 1)
 				{
-					count_stim = 2;
+
+					fprintf(fL,"%f\t",tnow);
 					for (int i = 0; i < num_cell[0]; i++)
 						{
-						L_cell[i] = L_rest[0];
+						L_cell[i] = nonstim_NE;
+						fprintf(fL,"%f\t",L_cell[i]);
 						}
+					fprintf(fL,"\n");
+					stim = delay+stim_time;
+					count_stim = 2;
+					fclose(fL);
 				}
 
 				// Assign spatial distribution of agonist concentration for the stimulation
 				else if (tnow >= (delay) && count_delay < 1)
 				{
-					count_delay = 2;
-					L_cell[0] = ((1+tanh((double(0)/(num_cell[0]-1)-xmean)/xstretch_var))/2); //
-					L_cell[num_cell[0]-1] = ((1+tanh((1-xmean)/xstretch_var))/2)-L_cell[0]; //
+					fprintf(fL,"%f\t",tnow);
 					for (int i = 0; i < num_cell[0]; i++)
+					{
+					if(i<stim_cells)
 						{
-						fprintf(fL,"%d\t%f\t",i,L_cell[i]);
-						fprintf(fGgj,"%d\t%f\n",i,G_gj[i]);
-						fprintf(fIP3P,"%d\t%f\n",i,IP3_P[i]);
-						if(i==0)
-							fprintf(fL,"%f\n",stim_NE);
-						else if(i == (num_cell[0]-1))
-							fprintf(fL,"%f\n",nonstim_NE);
-						else
-							{
-							L_cell[i] = stim_NE-(stim_NE-nonstim_NE)*(((1+tanh((double(i)/(num_cell[0]-1)-xmean)/xstretch_var))/2)-L_cell[0])/L_cell[num_cell[0]-1]; //
-							fprintf(fL,"%f\n",L_cell[i]);
-							}
+						L_cell[i] = stim_NE;
+						fprintf(fL,"%f\t",L_cell[i]);
 						}
-					L_cell[0] = stim_NE;
-					L_cell[num_cell[0]-1] = nonstim_NE;
-
-					fclose(fL);
-					fclose(fGgj);
-					fclose(fIP3P);
+					else
+						{
+						L_cell[i] = nonstim_NE;
+						fprintf(fL,"%f\t",L_cell[i]);
+						}
+					}
+					fprintf(fL,"\n");
+					delay = delay + stim_interval[1];
 				}
-
 
 				while (tol_count<1)
 				{
 					tol_count = 2;
-					if (tnow<delay)
+					if (tnow<delay_ini)
 					{
 						singlecell(tnow, interval); // Single cell simulation
 					}
@@ -238,7 +241,10 @@ int main(int argc, char* argv[]){
 				//  Checking file writing condition
 					if (int(tnow/file_write_freq) == count)
 						{
-						dump_data(ft, fvm, fca, fip3, fncx, fvocc, fbkca, fip3r,  fsrca, fryr, fdag, tnow);
+						/*sprintf(temp_name,"%s/spatialdata%05.0f.vtk",timeseries_folder,tnow*10);
+						fvtk = fopen(temp_name,"w+");
+						dump_data_timeseries(fvtk, tnow);*/
+						dump_data(ft, fvm, fca, fip3, fncx, fvocc, fbkca, fip3r, fsrca, fryr, fdag, tnow);
 						count++;
 						}
 
