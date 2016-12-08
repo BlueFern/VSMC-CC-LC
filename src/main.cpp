@@ -15,7 +15,7 @@
 #include <math.h>
 #include<sys/stat.h>
 
-#include "computelib.h"
+#include "include/computelib.h"
 
 int main(int argc, char* argv[]){
 
