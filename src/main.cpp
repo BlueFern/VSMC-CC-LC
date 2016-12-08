@@ -52,7 +52,6 @@ int main(int argc, char* argv[]){
 
 		char main_folder[300];
 		char sub_folder[300];
-		char timeseries_folder[300];
 		char temp_name[300];
 
 		/* Variables for coupled cells */
@@ -101,14 +100,6 @@ int main(int argc, char* argv[]){
 					return -1;
 					}
 
-			/* Creating subsubfolder as 'Timeseries'to save vtk files */
-				sprintf(timeseries_folder,"%s/Timeseries",sub_folder);
-				folder_status = mkdir(timeseries_folder,0777);
-				if(folder_status == -1)
-					{
-					perror("Couldn't create sub-directory");
-					return -1;
-					}
 
 			int count = 1; // counter to produce output files
 
@@ -241,9 +232,6 @@ int main(int argc, char* argv[]){
 				//  Checking file writing condition
 					if (int(tnow/file_write_freq) == count)
 						{
-						/*sprintf(temp_name,"%s/spatialdata%05.0f.vtk",timeseries_folder,tnow*10);
-						fvtk = fopen(temp_name,"w+");
-						dump_data_timeseries(fvtk, tnow);*/
 						dump_data(ft, fvm, fca, fip3, fncx, fvocc, fbkca, fip3r, fsrca, fryr, fdag, tnow);
 						count++;
 						}
