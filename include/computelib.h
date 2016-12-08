@@ -42,7 +42,7 @@ double *Q_ip3r; ///< Maximum rate of ip3r channel
 double *Q_serca; ///< Maximum rate of serca pump
 double *Q_ryr; ///< Maximum rate of ryr channel
 
-void initialize(FILE *fs); ///< This function initializes the variables
+void initialize(FILE *fs, FILE *fL, double tnow); ///< This function initializes the variables
 void allocatememory(int var_tot, int par_tot); ///< This function allocates memory for all the variables defined above
 void singlecell(double tnow, double interval); ///< This function solves single cell dynamics
 void multicell(double tnow, double interval); ///< This function solves coupled cells dynamics
