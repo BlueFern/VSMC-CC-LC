@@ -19,9 +19,11 @@ extern int *num_par, *num_var, *num_cell;
 extern double *Q_ip3r, *Q_serca, *Q_ryr;
 
 /**************************************************************************************/
-/**/void initialize(FILE *fs)/**/
+/**/void initialize(FILE *fs, FILE *fL, double tnow)/**/
 /**************************************************************************************/
-{	for (int i=0; i<num_cell[0]; i++)
+{
+	fprintf(fL,"%f\t",tnow);
+for (int i=0; i<num_cell[0]; i++)
 {
 fprintf(fs,"%d\t",i);
 
@@ -49,7 +51,8 @@ fprintf(fs,"%d\t",i);
 				G_gj[i]= G_gj_varied[0];
 				IP3_P[i] = IP3_P_varied[0];
 
-				L_cell[i] = L_rest[0];
+				L_cell[i] = nonstim_NE;
+				fprintf(fL,"%f\t",L_cell[i]);
 
 				par[i * num_par[0] + rho_rg] 	=	L_cell[i]/(1.0*(k_1+L_cell[i]));
 				y[i * num_var[0] + smc_G]		=	K_aG*(delta_G + par[i * num_par[0] + rho_rg])*G_TG/(K_aG*(delta_G + par[i * num_par[0] + rho_rg]) + K_dG);
@@ -75,5 +78,7 @@ fprintf(fs,"%d\t",i);
 				for (int j=0;j<num_var[0];j++)
 							y_converge[i * num_var[0] + j] = y[i * num_var[0] + j];
 }
+fprintf(fL,"\n");
 fclose(fs);
 }
+
