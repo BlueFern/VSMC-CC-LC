@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 
 	/* Simulation controlling parameters */
 		double tnow = 0.0; // Initial time , s
-		double interval = 1e-2; // Time interval, s
+		double interval = 1e-4; // Time interval, s
 		double tol_state = 1e-4; // Tolerance limit for the convergence in the iteration
 		double delay_ini = 50; // Time allowed for variables to converge
 		double delay = delay_ini; // Time allowed for variables to converge
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]){
 		double count_stim = 0; // control variable for the loop
 		double count_delay = 0; // control variable for the loop
 		int tol_count = 0; // Control varialbe for fixed point iteration
-		double file_write_freq = 0.1; // File writing frequency, s
+		double file_write_freq = 0.01; // File writing frequency, s
 		int folder_status; // variable to check the successful creartion of folder
 
 
